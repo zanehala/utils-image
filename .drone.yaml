@@ -5,6 +5,7 @@ name: default
 steps:
 - name: build-image
   image: thegeeklab/drone-docker-buildx
+  privileged: true
   settings:
     username: zhala
     password: 
