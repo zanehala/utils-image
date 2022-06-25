@@ -15,4 +15,4 @@ steps:
 - name: scan-image
   image: anchore/grype
   commands:
-  - zhala/utils-image:latest
+  - zhala/utils-image:latest -v
