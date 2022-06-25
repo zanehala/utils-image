@@ -1,0 +1,12 @@
+kind: pipeline
+name: default
+
+steps:
+- name: kaniko
+  image: banzaicloud/drone-kaniko
+  settings:
+    username: zhala
+    password: 
+      from_secret: docker-password
+    repo: zhala/utils-image
+    tags: latest
