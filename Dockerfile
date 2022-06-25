@@ -1,3 +1,8 @@
 FROM alpine
-RUN echo "build test"
-FROM scratch
+RUN apk add \
+    curl \
+    python3 \
+    terraform \
+    git \
+    make
+

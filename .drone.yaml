@@ -4,12 +4,15 @@ name: default
 
 steps:
 - name: build-image
-  image: thegeeklab/drone-docker-buildx
-  privileged: true
+  image: plugins/docker
   settings:
     username: zhala
     password: 
       from_secret: docker-password
     repo: zhala/utils-image
     tags: latest
-    platforms: amd64, arm64
+
+- name: scan-image
+  image: anchore/grype
+  commands:
+    zhala/utils-image:latest
