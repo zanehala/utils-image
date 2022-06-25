@@ -6,6 +6,7 @@ steps:
 - name: kaniko
   image: banzaicloud/drone-kaniko
   settings:
+    registry: hub.docker.com
     username: zhala
     password: 
       from_secret: docker-password
