@@ -5,6 +5,7 @@ name: default
 services:
   - name: docker
     image: docker:dind
+    privileged: true
 
 steps:
 - name: build-image
