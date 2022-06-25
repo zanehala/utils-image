@@ -3,11 +3,12 @@ type: kubernetes
 name: default
 
 steps:
-- name: kaniko
-  image: plugins/docker
+- name: build-image
+  image: thegeeklab/drone-docker-buildx
   settings:
     username: zhala
     password: 
       from_secret: docker-password
     repo: zhala/utils-image
     tags: latest
+    platforms: amd64, arm64
