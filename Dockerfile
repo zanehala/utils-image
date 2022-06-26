@@ -5,7 +5,6 @@ RUN apk add --no-cache\
     terraform \
     git \
     make \
-    dig \
     jq \
     py3-pip\
     bash
