@@ -1,8 +1,15 @@
 FROM alpine
-RUN apk add \
+RUN apk add --no-cache\
     curl \
     python3 \
     terraform \
     git \
-    make
+    make \
+    dig \
+    jq \
+    py3-pip\
+    bash
 
+RUN pip3 install awscli
+
+ENTRYPOINT [ "bash" ]
