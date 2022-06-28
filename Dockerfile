@@ -14,7 +14,7 @@ RUN apk add --no-cache\
 WORKDIR /tmp
 
 # Install AWS CLI
-RUN pip3 install awscli
+RUN pip3 --no-cache-dir install awscli
 
 # Install Kubectl
 RUN curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
