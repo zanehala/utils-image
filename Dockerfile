@@ -9,7 +9,8 @@ RUN apk add --no-cache\
     py3-pip \
     bash \
     kcat \
-    openssl
+    openssl \
+    bind-tools
 
 WORKDIR /tmp
 
