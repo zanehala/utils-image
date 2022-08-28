@@ -2,10 +2,10 @@ kind: pipeline
 type: kubernetes
 name: default
 
-# services:
-#   - name: docker
-#     image: docker:dind
-#     privileged: true
+services:
+  - name: docker
+    image: docker:dind
+    privileged: true
 
 steps:
 - name: build-image
@@ -17,11 +17,11 @@ steps:
     repo: zhala/utils-image
     tags: latest
 
-# - name: Anchore Grype
-#   commands:
-#     - /usr/local/bin/docker-grype-cmd.sh
-#   environment:
-#     DOCKER_HOST: tcp://docker:2375
-#     IMAGE_NAME: zhala/utils-image:latest
-#   image: cbdq/docker-grype:latest
-#   pull: if-not-exists
+- name: Anchore Grype
+  commands:
+    - /usr/local/bin/docker-grype-cmd.sh
+  environment:
+    DOCKER_HOST: tcp://docker:2375
+    IMAGE_NAME: zhala/utils-image:latest
+  image: cbdq/docker-grype:latest
+  pull: if-not-exists
