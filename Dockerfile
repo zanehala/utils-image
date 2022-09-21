@@ -10,7 +10,13 @@ RUN apk add --no-cache\
     bash \
     kcat \
     openssl \
-    bind-tools
+    bind-tools \
+    drill \
+    iperf \
+    iftop \
+    nmap \
+    net-tools \
+    speedtest-cli
 
 WORKDIR /tmp
 
