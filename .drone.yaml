@@ -16,6 +16,7 @@ steps:
       from_secret: docker-password
     repo: zhala/utils-image
     tags: latest
+    mtu: 1440
 
 # - name: Anchore Grype
 #   commands:
