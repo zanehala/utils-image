@@ -1,4 +1,7 @@
 FROM alpine
+
+RUN wget google.com
+
 RUN apk add --no-cache\
     curl \
     python3 \
