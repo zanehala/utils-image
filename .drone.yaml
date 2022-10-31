@@ -18,6 +18,16 @@ steps:
     tags: latest
     mtu: 1440
 
+- name: slack
+  image: plugins/slack
+  settings:
+    webhook:
+      from_secret: slack-build-webhook
+  template: >
+    {{#success build.status}} ✔ {{ else }} :x: {{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }} * (type: `{{ build.event }}`)
+    Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+    Build: <{{ build.link }}| Drone Build {{ build.number }}>
+
 # - name: Anchore Grype
 #   commands:
 #     - /usr/local/bin/docker-grype-cmd.sh
