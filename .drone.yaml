@@ -18,7 +18,7 @@ steps:
     tags: latest
     mtu: 1440
 
-- name: slack
+- name: slack-success
   image: plugins/slack
   settings:
     webhook:
@@ -31,7 +31,7 @@ steps:
     status:
     - success
 
-- name: slack
+- name: slack-failure
   image: plugins/slack
   settings:
     webhook:
