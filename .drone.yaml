@@ -23,10 +23,10 @@ steps:
   settings:
     webhook:
       from_secret: slack-build-webhook
-  template: |
-    :white_check_mark: Build Succeeded:
-    Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
-    Build: <{{ build.link }}| Drone Build {{ build.number }}>
+    template: |
+      :white_check_mark: Build Succeeded:
+      Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+      Build: <{{ build.link }}| Drone Build {{ build.number }}>
   when:
     status:
     - success
@@ -36,10 +36,10 @@ steps:
   settings:
     webhook:
       from_secret: slack-build-webhook
-  template: |
-    :x: Build Failed:
-    Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
-    Build: <{{ build.link }}| Drone Build {{ build.number }}>
+    template: |
+      :x: Build Failed:
+      Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+      Build: <{{ build.link }}| Drone Build {{ build.number }}>
   when:
     status:
     - failure
