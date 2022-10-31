@@ -25,7 +25,7 @@ steps:
       from_secret: slack-build-webhook
     template: |
       {{#success build.status}} :white_check_mark: {{ else }} :x: {{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }} * (type: `{{ build.event }}`)
-      Commit: <{{build.source_repo}}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+      Commit: <{{ build.source_repo }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
       Build: <{{ build.link }}| Drone Build {{ build.number }}>
   when:
     status:
