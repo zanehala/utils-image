@@ -18,30 +18,18 @@ steps:
     tags: latest
     mtu: 1440
 
-- name: slack-success
+- name: slack
   image: plugins/slack
   settings:
     webhook:
       from_secret: slack-build-webhook
     template: |
-      :white_check_mark: Build Succeeded:
-      Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+      {{#success build.status}} :white_check_mark: {{ else }} :x: {{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }} * (type: `{{ build.event }}`)
+      Commit: <{{repo.link}}|{{ truncate build.commit 8 }}>
       Build: <{{ build.link }}| Drone Build {{ build.number }}>
   when:
     status:
     - success
-
-- name: slack-failure
-  image: plugins/slack
-  settings:
-    webhook:
-      from_secret: slack-build-webhook
-    template: |
-      :x: Build Failed:
-      Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
-      Build: <{{ build.link }}| Drone Build {{ build.number }}>
-  when:
-    status:
     - failure
 
 # - name: Anchore Grype
