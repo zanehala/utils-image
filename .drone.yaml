@@ -23,12 +23,26 @@ steps:
   settings:
     webhook:
       from_secret: slack-build-webhook
-  template: >
-    {{#success build.status}} :white-check-mark: Build Succeeded: {{ else }} :x: Build Failed: {{/success}} Build #{{ build.number }} * (type: `{{ build.event }}`)
-
+  template: |
+    :white_check_mark: Build Succeeded:
     Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
-
     Build: <{{ build.link }}| Drone Build {{ build.number }}>
+  when:
+    status:
+    - success
+
+- name: slack
+  image: plugins/slack
+  settings:
+    webhook:
+      from_secret: slack-build-webhook
+  template: |
+    :x: Build Failed:
+    Commit: <https://github.com/{{ repo.owner }}/{{ repo.name }}/commit/{{ build.commit }}|{{ truncate build.commit 8 }}>
+    Build: <{{ build.link }}| Drone Build {{ build.number }}>
+  when:
+    status:
+    - failure
 
 # - name: Anchore Grype
 #   commands:
