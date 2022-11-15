@@ -2,10 +2,17 @@ kind: pipeline
 type: kubernetes
 name: default
 
-# services:
-#   - name: docker
-#     image: docker:dind
-#     privileged: true
+services:
+  - name: docker
+    image: docker:dind
+    privileged: true
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+volumes:
+  - name: dockersock
+    temp: {}
 
 steps:
 - name: build-image
@@ -17,6 +24,14 @@ steps:
     repo: zhala/utils-image
     tags: latest
     mtu: 1440
+
+- name: Generate SBOM and Vulns
+  image: docker:dind
+  volumes:
+  - name: dockersock
+    path: /var/run
+  commands:
+  - docker run anchore/grype zhala/utils-image:latest
 
 - name: slack
   image: plugins/slack
@@ -31,12 +46,3 @@ steps:
     status:
     - success
     - failure
-
-# - name: Anchore Grype
-#   commands:
-#     - /usr/local/bin/docker-grype-cmd.sh
-#   environment:
-#     DOCKER_HOST: tcp://docker:2375
-#     IMAGE_NAME: zhala/utils-image:latest
-#   image: cbdq/docker-grype:latest
-#   pull: if-not-exists
