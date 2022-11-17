@@ -15,7 +15,25 @@ volumes:
     temp: {}
 
 steps:
-- name: build-image
+- name: build-image-internal
+  image: plugins/docker
+  settings:
+    registry: registry.zanelab.com
+    repo: registry.zanelab.com/zhala/utils-image
+    tags: 
+      - ${DRONE_BUILD_NUMBER}
+      - latest
+  # Only run this step when a PR is opened or a commit is pushed
+  # on a non master branch
+  when:
+    branch:
+      exclude:
+      - master
+    event: 
+    - push
+    - pull_request
+
+- name: build-image-public
   image: plugins/docker
   settings:
     username: zhala
@@ -24,6 +42,11 @@ steps:
     repo: zhala/utils-image
     tags: latest
     mtu: 1440
+  # Only run this step when a PR is merged into master
+  when:
+    branch: master
+    event: 
+    - push
 
 - name: Generate SBOM and Vulns
   image: docker:dind
@@ -42,6 +65,7 @@ steps:
       {{#success build.status}} :white_check_mark: {{ else }} :x: {{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }} * (type: `{{ build.event }}`)
       Commit: <${DRONE_COMMIT_LINK}|{{ truncate build.commit 8 }}>
       Build: <{{ build.link }}| Drone Build {{ build.number }}>
+      Branch: ${DRONE_BRANCH}
   when:
     status:
     - success
