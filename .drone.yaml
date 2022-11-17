@@ -23,6 +23,7 @@ steps:
     tags: 
       - ${DRONE_BUILD_NUMBER}
       - latest
+    mtu: 1440
   # Only run this step when a PR is opened or a commit is pushed
   # on a non master branch
   when:
@@ -31,7 +32,6 @@ steps:
       - master
     event: 
     - push
-    - pull_request
 
 - name: build-image-public
   image: plugins/docker
@@ -47,6 +47,20 @@ steps:
     branch: master
     event: 
     - push
+
+- name: build-image-cron
+  image: plugins/docker
+  settings:
+    username: zhala
+    password: 
+      from_secret: docker-password
+    repo: zhala/utils-image
+    tags: latest
+    mtu: 1440
+  # Only run this step when triggered by the weekly rebuild cron
+  when:
+    event: cron
+    cron: weekly
 
 - name: Generate SBOM and Vulns
   image: docker:dind
