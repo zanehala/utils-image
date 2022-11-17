@@ -32,7 +32,6 @@ steps:
       - master
     event: 
     - push
-    - pull_request
 
 - name: build-image-public
   image: plugins/docker
