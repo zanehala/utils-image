@@ -60,7 +60,7 @@ steps:
   # Only run this step when triggered by the weekly rebuild cron
   when:
     event: cron
-    cron: weekly
+    cron: weekly-rebuild
 
 - name: Generate SBOM and Vulns
   image: docker:dind
