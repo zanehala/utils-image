@@ -13,6 +13,9 @@ services:
 volumes:
   - name: dockersock
     temp: {}
+  - name: artifacts
+    temp: {}
+
 
 steps:
 - name: build-image-internal
@@ -67,8 +70,13 @@ steps:
   volumes:
   - name: dockersock
     path: /var/run
+  - name: artifacts
+    path: /artifacts
   commands:
-  - docker run anchore/grype zhala/utils-image:latest
+  - docker run registry.zanelab.com/zhala/image-scanner:latest syft registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee sbom.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest grype registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee vulns.txt
+  - cp sbom.txt vulns.txt /artifacts
+
 
 - name: Push SBOM and vulns reports
   image: alpine
