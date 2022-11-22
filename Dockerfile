@@ -1,5 +1,8 @@
 FROM alpine
 
+ARG COMMIT
+ENV COMMIT=$COMMIT
+
 RUN apk add --no-cache\
     curl \
     python3 \
