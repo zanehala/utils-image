@@ -28,7 +28,7 @@ steps:
       - latest
     mtu: 1440
     build_args:
-      - COMMIT=$DRONE_COMMIT_SHA
+      - COMMIT=${DRONE_COMMIT_SHA}
   # Only run this step when a PR is opened or a commit is pushed
   # on a non master branch
   when:
@@ -48,7 +48,7 @@ steps:
     tags: latest
     mtu: 1440
     build_args:
-      - COMMIT=$DRONE_COMMIT_SHA
+      - COMMIT=${DRONE_COMMIT_SHA}
   # Only run this step when a PR is merged into master
   when:
     branch: master
@@ -65,7 +65,7 @@ steps:
     tags: latest
     mtu: 1440
     build_args:
-      - COMMIT=$DRONE_COMMIT_SHA
+      - COMMIT=${DRONE_COMMIT_SHA}
   # Only run this step when triggered by the weekly rebuild cron
   when:
     event: cron
