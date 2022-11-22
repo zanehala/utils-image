@@ -70,6 +70,28 @@ steps:
   commands:
   - docker run anchore/grype zhala/utils-image:latest
 
+- name: Push SBOM and vulns reports
+  image: alpine
+  volumes:
+  - name: artifacts
+    path: /artifacts
+  environment:
+    SSH_KEY:
+      from_secret: git-ssh-key
+  commands:
+  - apk add git openssh-client
+  - mkdir ~/.ssh
+  - echo $SSH_KEY | base64 -d > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+  - ssh-keyscan git.zanelab.com >> ~/.ssh/known_hosts
+  - git clone --depth=1 git@git.zanelab.com:zhala/container-reports.git
+  - cd container-reports && mkdir -p $DRONE_REPO_NAME/$DRONE_COMMIT_SHA && cp /artifacts/*  $DRONE_REPO_NAME/$DRONE_COMMIT_SHA
+  - git config --global user.email "zmhala@gmail.com" && git config --global user.name "zhala"
+  - git add . && git commit -m "Update $DRONE_REPO_NAME/$DRONE_COMMIT_SHA" && git push origin master
+  when:
+    branch: master
+    event:
+      - push
+
 - name: slack
   image: plugins/slack
   settings:
@@ -77,9 +99,10 @@ steps:
       from_secret: slack-build-webhook
     template: |
       {{#success build.status}} :white_check_mark: {{ else }} :x: {{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }} * (type: `{{ build.event }}`)
+      Repo: ${DRONE_REPO_NAME}
+      Branch: ${DRONE_BRANCH}
       Commit: <${DRONE_COMMIT_LINK}|{{ truncate build.commit 8 }}>
       Build: <{{ build.link }}| Drone Build {{ build.number }}>
-      Branch: ${DRONE_BRANCH}
   when:
     status:
     - success
