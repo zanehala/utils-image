@@ -1,6 +1,6 @@
 kind: pipeline
 type: kubernetes
-name: default
+name: push
 
 services:
   - name: docker
@@ -16,7 +16,6 @@ volumes:
   - name: artifacts
     temp: {}
 
-
 steps:
 - name: build-image-internal
   image: plugins/docker
@@ -29,47 +28,6 @@ steps:
     mtu: 1440
     build_args:
       - COMMIT=${DRONE_COMMIT_SHA}
-  # Only run this step when a PR is opened or a commit is pushed
-  # on a non master branch
-  when:
-    branch:
-      exclude:
-      - master
-    event: 
-    - push
-
-- name: build-image-public
-  image: plugins/docker
-  settings:
-    username: zhala
-    password: 
-      from_secret: docker-password
-    repo: zhala/utils-image
-    tags: latest
-    mtu: 1440
-    build_args:
-      - COMMIT=${DRONE_COMMIT_SHA}
-  # Only run this step when a PR is merged into master
-  when:
-    branch: master
-    event: 
-    - push
-
-- name: build-image-cron
-  image: plugins/docker
-  settings:
-    username: zhala
-    password: 
-      from_secret: docker-password
-    repo: zhala/utils-image
-    tags: latest
-    mtu: 1440
-    build_args:
-      - COMMIT=${DRONE_COMMIT_SHA}
-  # Only run this step when triggered by the weekly rebuild cron
-  when:
-    event: cron
-    cron: weekly-rebuild
 
 - name: Generate SBOM and Vulns
   image: docker:dind
@@ -83,6 +41,73 @@ steps:
   - docker run registry.zanelab.com/zhala/image-scanner:latest grype registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee vulns.txt
   - cp sbom.txt vulns.txt /artifacts
 
+- name: slack
+  image: plugins/slack
+  settings:
+    webhook:
+      from_secret: slack-build-webhook
+    template: |
+      {{#success build.status}} :white_check_mark: {{ else }} :x: {{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }} * (type: `{{ build.event }}`)
+      Repo: ${DRONE_REPO_NAME}
+      Branch: ${DRONE_BRANCH}
+      Commit: <${DRONE_COMMIT_LINK}|{{ truncate build.commit 8 }}>
+      Build: <{{ build.link }}| Drone Build {{ build.number }}>
+  when:
+    status:
+    - success
+    - failure
+
+trigger:
+  branch:
+    exclude:
+    - master
+  event:
+  - push
+
+
+---
+kind: pipeline
+type: kubernetes
+name: merge-master
+
+services:
+  - name: docker
+    image: docker:dind
+    privileged: true
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+volumes:
+  - name: dockersock
+    temp: {}
+  - name: artifacts
+    temp: {}
+
+steps:
+- name: build-image-public
+  image: plugins/docker
+  settings:
+    username: zhala
+    password: 
+      from_secret: docker-password
+    repo: zhala/utils-image
+    tags: latest
+    mtu: 1440
+    build_args:
+      - COMMIT=${DRONE_COMMIT_SHA}
+
+- name: Generate SBOM and Vulns
+  image: docker:dind
+  volumes:
+  - name: dockersock
+    path: /var/run
+  - name: artifacts
+    path: /artifacts
+  commands:
+  - docker run registry.zanelab.com/zhala/image-scanner:latest syft registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee sbom.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest grype registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee vulns.txt
+  - cp sbom.txt vulns.txt /artifacts
 
 - name: Push SBOM and vulns reports
   image: alpine
@@ -101,10 +126,6 @@ steps:
   - cd container-reports && mkdir -p $DRONE_REPO_NAME/$DRONE_COMMIT_SHA && cp /artifacts/*  $DRONE_REPO_NAME/$DRONE_COMMIT_SHA
   - git config --global user.email "zmhala@gmail.com" && git config --global user.name "zhala"
   - git add . && git commit -m "Update $DRONE_REPO_NAME/$DRONE_COMMIT_SHA" && git push origin master
-  when:
-    branch: master
-    event:
-      - push
 
 - name: slack
   image: plugins/slack
@@ -121,3 +142,81 @@ steps:
     status:
     - success
     - failure
+
+trigger:
+  when:
+    branch: 
+    - master
+    event: 
+    - push
+
+
+---
+kind: pipeline
+type: kubernetes
+name: cron
+
+steps:
+- name: build-image-cron
+  image: plugins/docker
+  settings:
+    username: zhala
+    password: 
+      from_secret: docker-password
+    repo: zhala/utils-image
+    tags: latest
+    mtu: 1440
+    build_args:
+      - COMMIT=${DRONE_COMMIT_SHA}
+
+- name: Generate SBOM and Vulns
+  image: docker:dind
+  volumes:
+  - name: dockersock
+    path: /var/run
+  - name: artifacts
+    path: /artifacts
+  commands:
+  - docker run registry.zanelab.com/zhala/image-scanner:latest syft registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee sbom.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest grype registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee vulns.txt
+  - cp sbom.txt vulns.txt /artifacts
+
+- name: Push SBOM and vulns reports
+  image: alpine
+  volumes:
+  - name: artifacts
+    path: /artifacts
+  environment:
+    SSH_KEY:
+      from_secret: git-ssh-key
+  commands:
+  - apk add git openssh-client
+  - mkdir ~/.ssh
+  - echo $SSH_KEY | base64 -d > ~/.ssh/id_ed25519 && chmod 600 ~/.ssh/id_ed25519
+  - ssh-keyscan git.zanelab.com >> ~/.ssh/known_hosts
+  - git clone --depth=1 git@git.zanelab.com:zhala/container-reports.git
+  - cd container-reports && mkdir -p $DRONE_REPO_NAME/$DRONE_COMMIT_SHA && cp /artifacts/*  $DRONE_REPO_NAME/$DRONE_COMMIT_SHA
+  - git config --global user.email "zmhala@gmail.com" && git config --global user.name "zhala"
+  - git add . && git commit -m "Update $DRONE_REPO_NAME/$DRONE_COMMIT_SHA" && git push origin master
+
+- name: slack
+  image: plugins/slack
+  settings:
+    webhook:
+      from_secret: slack-build-webhook
+    template: |
+      {{#success build.status}} :white_check_mark: {{ else }} :x: {{/success}} {{ uppercasefirst build.status }}: Build #{{ build.number }} * (type: `{{ build.event }}`)
+      Repo: ${DRONE_REPO_NAME}
+      Branch: ${DRONE_BRANCH}
+      Commit: <${DRONE_COMMIT_LINK}|{{ truncate build.commit 8 }}>
+      Build: <{{ build.link }}| Drone Build {{ build.number }}>
+  when:
+    status:
+    - success
+    - failure
+
+trigger:
+  event:
+  - cron
+  cron:
+  - weekly-rebuild
