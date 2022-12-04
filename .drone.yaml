@@ -37,8 +37,8 @@ steps:
   - name: artifacts
     path: /artifacts
   commands:
-  - docker run registry.zanelab.com/zhala/image-scanner:latest syft registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee sbom.txt
-  - docker run registry.zanelab.com/zhala/image-scanner:latest grype registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee vulns.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest syft zhala/utils-image:latest 2>&1 | tee sbom.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest grype zhala/utils-image:latest 2>&1 | tee vulns.txt
   - cp sbom.txt vulns.txt /artifacts
 
 - name: slack
@@ -105,8 +105,8 @@ steps:
   - name: artifacts
     path: /artifacts
   commands:
-  - docker run registry.zanelab.com/zhala/image-scanner:latest syft registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee sbom.txt
-  - docker run registry.zanelab.com/zhala/image-scanner:latest grype registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee vulns.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest syft zhala/utils-imager:latest 2>&1 | tee sbom.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest grype zhala/utils-image:latest 2>&1 | tee vulns.txt
   - cp sbom.txt vulns.txt /artifacts
 
 - name: Push SBOM and vulns reports
@@ -148,13 +148,30 @@ trigger:
     branch: 
     - master
     event: 
-    - push
+      exclude:
+      - cron
+      include:
+      - push
 
 
 ---
 kind: pipeline
 type: kubernetes
 name: cron
+
+services:
+  - name: docker
+    image: docker:dind
+    privileged: true
+    volumes:
+      - name: dockersock
+        path: /var/run
+
+volumes:
+  - name: dockersock
+    temp: {}
+  - name: artifacts
+    temp: {}
 
 steps:
 - name: build-image-cron
@@ -177,8 +194,8 @@ steps:
   - name: artifacts
     path: /artifacts
   commands:
-  - docker run registry.zanelab.com/zhala/image-scanner:latest syft registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee sbom.txt
-  - docker run registry.zanelab.com/zhala/image-scanner:latest grype registry.zanelab.com/zhala/image-scanner:latest 2>&1 | tee vulns.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest syft zhala/utils-image:latest 2>&1 | tee sbom.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest grype zhala/utils-image:latest 2>&1 | tee vulns.txt
   - cp sbom.txt vulns.txt /artifacts
 
 - name: Push SBOM and vulns reports
