@@ -105,7 +105,7 @@ steps:
   - name: artifacts
     path: /artifacts
   commands:
-  - docker run registry.zanelab.com/zhala/image-scanner:latest syft zhala/utils-imager:latest 2>&1 | tee sbom.txt
+  - docker run registry.zanelab.com/zhala/image-scanner:latest syft zhala/utils-image:latest 2>&1 | tee sbom.txt
   - docker run registry.zanelab.com/zhala/image-scanner:latest grype zhala/utils-image:latest 2>&1 | tee vulns.txt
   - cp sbom.txt vulns.txt /artifacts
 
