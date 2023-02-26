@@ -125,6 +125,7 @@ steps:
   - git clone --depth=1 git@git.zanelab.com:zhala/container-reports.git
   - cd container-reports && mkdir -p $DRONE_REPO_NAME/$DRONE_COMMIT_SHA && cp /artifacts/*  $DRONE_REPO_NAME/$DRONE_COMMIT_SHA
   - git config --global user.email "zmhala@gmail.com" && git config --global user.name "zhala"
+  - git pull origin master && git fetch
   - git add . && git commit -m "Update $DRONE_REPO_NAME/$DRONE_COMMIT_SHA" && git push origin master
 
 - name: slack
@@ -214,6 +215,7 @@ steps:
   - git clone --depth=1 git@git.zanelab.com:zhala/container-reports.git
   - cd container-reports && mkdir -p $DRONE_REPO_NAME/$DRONE_COMMIT_SHA && cp /artifacts/*  $DRONE_REPO_NAME/$DRONE_COMMIT_SHA
   - git config --global user.email "zmhala@gmail.com" && git config --global user.name "zhala"
+  - git pull origin master && git fetch
   - git add . && git commit -m "Update $DRONE_REPO_NAME/$DRONE_COMMIT_SHA" && git push origin master
 
 - name: slack
