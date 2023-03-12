@@ -150,11 +150,11 @@ trigger:
   event: 
     include:
     - push
-  event:
-  - cron
-  target:
-    exclude:
-    - weekly-rebuild
+  # event:
+  # - cron
+  # target:
+  #   exclude:
+  #   - weekly-rebuild
 
 
 ---
