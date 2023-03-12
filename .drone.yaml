@@ -150,7 +150,6 @@ trigger:
   event: 
     include:
     - push
-    exclude:
   event:
   - cron
   target:
