@@ -145,14 +145,17 @@ steps:
     - failure
 
 trigger:
-  when:
-    branch: 
-    - master
-    event: 
-      exclude:
-      - cron
-      include:
-      - push
+  branch: 
+  - master
+  event: 
+    include:
+    - push
+    exclude:
+  event:
+  - cron
+  target:
+    exclude:
+    - weekly-rebuild
 
 
 ---
